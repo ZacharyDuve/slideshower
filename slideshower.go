@@ -1,27 +1,29 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-	"image"
+	"io/ioutil"
+	"net/http"
 	"os"
-	"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/theme"
 	"github.com/ZacharyDuve/slideshower/imageloader"
+	"github.com/gorilla/mux"
 )
 
+type nextResponse struct {
+	ImageID imageloader.ImageFileID `json:"imageid"`
+}
+
 func main() {
+
+	router := mux.NewRouter()
+
 	var rootDirPath string
 	flag.StringVar(&rootDirPath, "path", ".", "used for setting the path.")
 	flag.Parse()
-	app := app.New()
-	app.Settings().SetTheme(theme.DarkTheme())
-	w := app.NewWindow("SlideShower")
-	w.Resize(fyne.NewSize(200, 200))
+
 	iL, err := imageloader.NewFSImageLoader(rootDirPath)
 	if err != nil {
 		fmt.Println(err)
@@ -33,38 +35,46 @@ func main() {
 		os.Exit(1)
 	}
 
-	img := canvas.NewImageFromImage(image.NewRGBA(image.Rect(0, 0, 100, 100)))
-	img.FillMode = canvas.ImageFillContain
-	//container := fyne.NewContainerWithLayout(layout.NewCenterLayout(), img)
-	//w.SetContent(container)
-	//theme.Back
-	w.SetContent(img)
+	router.HandleFunc("/photo/next", func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println("/photo/next was called")
+		nextImageFileID := slideShow.Next()
+		//defer nextImageFile.Close()
+		//fmt.Println("Should have next photo")
+		//photoData, err := ioutil.ReadAll(nextImageFile)
 
-	//w.SetFullScreen(true)
-
-	go displayImage(img, slideShow)
-
-	//image := canvas.NewImageFromFile("IMG_3331.jpg")
-
-	w.ShowAndRun()
-}
-
-func displayImage(img *canvas.Image, slideShow *imageloader.ImageSlideShow) {
-	for {
-		curImageFile := slideShow.Next()
-		curImage, err := curImageFile.GetImage()
+		fmt.Println("Photodata has been pulled", nextImageFileID, " ;")
 		if err != nil {
 			fmt.Println(err)
-			continue
+			rw.WriteHeader(http.StatusInternalServerError)
+			rw.Write([]byte(err.Error()))
+		} else {
+			nextResponse := &nextResponse{ImageID: nextImageFileID}
+			responseDataJson, _ := json.Marshal(nextResponse)
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(responseDataJson))
 		}
+	})
 
-		// image := canvas.NewImageFromImage(curImage)
-		img.Image = curImage
-		img.Refresh()
-		//image.FillMode = canvas.ImageFillContain
-		//fyne.NewContainerWithLayout(layout.NewCenterLayout(), image)
-		//w.SetContent(image)
+	router.HandleFunc("/photo/{id}", func(rw http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		imageFileID := imageloader.ImageFileID(vars["id"])
+		imageFile := slideShow.GetImageByID(imageFileID)
 
-		time.Sleep(time.Second * 5)
-	}
+		if imageFile == nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			rw.Write([]byte("Unable to find image with id " + vars["id"]))
+		} else {
+			defer imageFile.Close()
+			photoData, err := ioutil.ReadAll(imageFile)
+			if err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				rw.Write([]byte(err.Error()))
+			} else {
+				rw.WriteHeader(http.StatusOK)
+				rw.Write(photoData)
+			}
+		}
+	})
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web")))
+	http.ListenAndServe(":8080", router)
 }

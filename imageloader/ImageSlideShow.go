@@ -6,17 +6,24 @@ import (
 )
 
 type ImageSlideShow struct {
-	images   []*ImageFile
-	curIndex int
+	images            map[ImageFileID]*ImageFile
+	slideShowOrder    []ImageFileID
+	curSlideShowIndex int
 }
 
-func NewImageSlideShow(imgs []*ImageFile) *ImageSlideShow {
+func NewImageSlideShow(images []*ImageFile) *ImageSlideShow {
 	iSS := &ImageSlideShow{}
-	iSS.curIndex = 0
-	iSS.images = imgs
+	iSS.curSlideShowIndex = 0
 
-	if iSS.images == nil {
-		iSS.images = make([]*ImageFile, 0)
+	numImagesIn := len(images)
+	iSS.images = make(map[ImageFileID]*ImageFile, numImagesIn)
+	iSS.slideShowOrder = make([]ImageFileID, numImagesIn)
+	for i, curImageIn := range images {
+		if curImageIn != nil {
+			curImageID := curImageIn.ID()
+			iSS.images[curImageID] = curImageIn
+			iSS.slideShowOrder[i] = curImageID
+		}
 	}
 
 	iSS.Shuffle()
@@ -25,33 +32,37 @@ func NewImageSlideShow(imgs []*ImageFile) *ImageSlideShow {
 }
 
 func (this *ImageSlideShow) Shuffle() {
-	imagesLen := len(this.images)
+	imagesLen := len(this.slideShowOrder)
 	if imagesLen != 0 {
 		//Do some shuffle magic
 		for i := 0; i < imagesLen; i++ {
 			i1 := rand.Intn(imagesLen)
 			i2 := rand.Intn(imagesLen)
 
-			tmpImg := this.images[i1]
-			this.images[i1] = this.images[i2]
-			this.images[i2] = tmpImg
+			tmpImg := this.slideShowOrder[i1]
+			this.slideShowOrder[i1] = this.slideShowOrder[i2]
+			this.slideShowOrder[i2] = tmpImg
 		}
 	}
 }
 
-func (this *ImageSlideShow) Next() *ImageFile {
-	var retImage *ImageFile
+func (this *ImageSlideShow) Next() ImageFileID {
+	var retImageID ImageFileID
 
 	if len(this.images) != 0 {
-		if this.curIndex == len(this.images) {
+		if this.curSlideShowIndex == len(this.images) {
 			this.Shuffle()
-			this.curIndex = 0
+			this.curSlideShowIndex = 0
 		}
-		retImage = this.images[this.curIndex]
-		this.curIndex++
+		retImageID = this.slideShowOrder[this.curSlideShowIndex]
+		this.curSlideShowIndex++
 	} else {
 		panic(errors.New("Cannot show when there are no images in slideshow"))
 	}
 
-	return retImage
+	return retImageID
+}
+
+func (this *ImageSlideShow) GetImageByID(id ImageFileID) *ImageFile {
+	return this.images[id]
 }
