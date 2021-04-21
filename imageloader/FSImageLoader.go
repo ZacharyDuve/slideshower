@@ -44,5 +44,8 @@ func (this *fsImageLoader) LoadImages() (slideShow *ImageSlideShow, err error) {
 
 func isDisplayablePicture(path string) bool {
 	lowerPath := strings.ToLower(path)
-	return strings.HasSuffix(lowerPath, "jpeg") || strings.HasSuffix(lowerPath, "jpg") || strings.HasSuffix(lowerPath, "png")
+	isImageFileExtension := strings.HasSuffix(lowerPath, "jpeg") || strings.HasSuffix(lowerPath, "jpg") || strings.HasSuffix(lowerPath, "png")
+	isNotHiddenFile := !strings.Contains(path, "/.")
+
+	return isImageFileExtension && isNotHiddenFile
 }

@@ -3,6 +3,7 @@ package imageloader
 import (
 	"fmt"
 	"image"
+	"log"
 
 	//Needed to decode jpegs
 	_ "image/jpeg"
@@ -43,6 +44,7 @@ func (this *ImageFile) ID() ImageFileID {
 func (this *ImageFile) Read(p []byte) (n int, err error) {
 	if this.file == nil {
 		this.file, err = os.Open(this.filePath)
+		log.Println("Opened file:", this.filePath)
 	}
 
 	if err != nil {
