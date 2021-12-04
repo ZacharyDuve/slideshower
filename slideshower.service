@@ -5,7 +5,7 @@ After=network.target
 Type=simple
 Restart=always
 User=pi
-ExecStart=/usr/local/go/bin/go run slideshower.go -path=/media/pi/C547-F465/Photos
+ExecStart=/usr/local/go/bin/go run /home/pi/go/src/github.com/ZacharyDuve/slideshower/slideshower.go -path=/media/pi/C547-F465/Photos
 
 [Install]
 WantedBy=multi-user.target
