@@ -1,11 +1,9 @@
 [Unit]
 Description=Photo Displaying Service
 After=network.target
-StartLimitIntervalSec=0
 [Service]
 Type=simple
 Restart=always
-RestartSec=1
 User=pi
 ExecStart=/usr/local/go/bin/go run slideshower.go -path=/media/pi/C547-F465/Photos
 
