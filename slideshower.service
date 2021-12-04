@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=pi
-ExecStart=/usr/local/go/bin/go slideshower.go -path=/media/pi/C547-F465/Photos
+ExecStart=/usr/local/go/bin/go run slideshower.go -path=/media/pi/C547-F465/Photos
 
 [Install]
 WantedBy=multi-user.target
