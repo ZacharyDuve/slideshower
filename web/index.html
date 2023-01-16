@@ -17,9 +17,10 @@
                 background-color: black;
             }
             .center-fit {
-                max-width: 100%;
+                max-width: 100vw;
                 max-height: 100vh;
                 margin: auto;
+                object-fit: contain;
             }
         </style>
     </head>
@@ -27,7 +28,8 @@
     <body >
         <div class="imgbox">
             <!-- <img id="mainImg" src="/" alt="some photo" style="margin-right: auto; margin-left: auto; display: block;"> -->
-        <img id="mainImg" src="/" alt="some photo" class="center-fit">
+        <img id="img0" src="/" alt="some photo" class="center-fit">
+        <img id="img1" src="/" alt="some photo" class="center-fit">
         </div>
         
     <script src="index.js"></script>
