@@ -3,6 +3,7 @@ package imageloader
 import (
 	"errors"
 	"math/rand"
+	"time"
 )
 
 type ImageSlideShow struct {
@@ -12,6 +13,8 @@ type ImageSlideShow struct {
 }
 
 func NewImageSlideShow(images []*ImageFile) *ImageSlideShow {
+
+	rand.Seed(time.Now().Unix())
 	iSS := &ImageSlideShow{}
 	iSS.curSlideShowIndex = 0
 
